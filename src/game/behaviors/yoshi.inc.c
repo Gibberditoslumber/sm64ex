@@ -12,7 +12,7 @@ void bhv_yoshi_init(void) {
     o->oInteractionSubtype = INT_SUBTYPE_NPC;
 
     if (save_file_get_total_star_count(gCurrSaveFileNum - 1, 0, 24) < 120 || sYoshiDead == TRUE) {
-        o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
+        o->activeFlags = 0;
     }
 }
 
@@ -35,7 +35,7 @@ void yoshi_walk_loop(void) {
 
     if (o->oPosY < 2100.0f) {
         create_respawner(MODEL_YOSHI, bhvYoshi, 3000);
-        o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
+        o->activeFlags = 0;
     }
 }
 
@@ -76,9 +76,9 @@ void yoshi_talk_loop(void) {
     if ((s16) o->oMoveAngleYaw == (s16) o->oAngleToMario) {
         cur_obj_init_animation(0);
         if (set_mario_npc_dialog(1) == 2) {
-            o->activeFlags |= ACTIVE_FLAG_INITIATED_TIME_STOP;
+            o->activeFlags |= 0x20;
             if (cutscene_object_with_dialog(CUTSCENE_DIALOG, o, DIALOG_161)) {
-                o->activeFlags &= ~ACTIVE_FLAG_INITIATED_TIME_STOP;
+                o->activeFlags &= ~0x20;
                 o->oInteractStatus = 0;
                 o->oHomeX = sYoshiHomeLocations[2];
                 o->oHomeZ = sYoshiHomeLocations[3];
@@ -125,7 +125,7 @@ void yoshi_finish_jumping_and_despawn_loop(void) {
         set_mario_npc_dialog(0);
         gObjCutsceneDone = TRUE;
         sYoshiDead = 1;
-        o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
+        o->activeFlags = 0;
     }
 }
 
@@ -176,5 +176,5 @@ void bhv_yoshi_loop(void) {
             break;
     }
 
-    curr_obj_random_blink(&o->oYoshiBlinkTimer);
+    curr_obj_random_blink(&o->oYoshiUnkF4);
 }

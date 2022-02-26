@@ -1,8 +1,7 @@
+#include <ultra64.h>
 #include <stdbool.h>
-#include <PR/ultratypes.h>
 
 #include "sm64.h"
-#include "actors/common1.h"
 #include "gfx_dimensions.h"
 #include "game_init.h"
 #include "level_update.h"
@@ -14,7 +13,6 @@
 #include "area.h"
 #include "save_file.h"
 #include "print.h"
-#include "pc/configfile.h"
 
 /* @file hud.c
  * This file implements HUD rendering and power meter animations.
@@ -59,6 +57,7 @@ static struct UnusedHUDStruct sUnusedHUDValues = { 0x00, 0x0A, 0x00 };
 
 static struct CameraHUD sCameraHUD = { CAM_STATUS_NONE };
 
+extern bool configHUD;
 /**
  * Renders a rgba16 16x16 glyph texture from a table list.
  */

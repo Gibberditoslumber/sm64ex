@@ -2,7 +2,7 @@
 #include <string.h>
 
 void guMtxF2L(float mf[4][4], Mtx *m) {
-    memcpy(m->m, mf, sizeof(Mtx));
+    memcpy(m, mf, sizeof(Mtx));
 }
 
 void guMtxIdentF(float mf[4][4]) {
@@ -18,6 +18,8 @@ void guMtxIdentF(float mf[4][4]) {
     }
 }
 void guMtxIdent(Mtx *m) {
+
     guMtxIdentF(m->m);
+
 }
 

@@ -6,7 +6,7 @@ Run `./extract_assets.py --clean && make clean` or `make distclean` to remove RO
 
 Please contribute **first** to the [nightly branch](https://github.com/sm64pc/sm64ex/tree/nightly/). New functionality will be merged to master once they're considered to be well-tested.
 
-*Read this in other languages: [Español](README_es_ES.md), [Português](README_pt_BR.md), [简体中文](README_zh_CN.md) or [Bahasa Melayu](README_ms_MY.md).*
+*Read this in other languages: [Español](README_es_ES.md), [Português](README_pt_BR.md) or [简体中文](README_zh_CN.md).*
 
 ## New features
 
@@ -20,7 +20,7 @@ Please contribute **first** to the [nightly branch](https://github.com/sm64pc/sm
  * Cheats menu in Options (activate with `--cheats` or by pressing L thrice in the pause menu).
  * Support for both little-endian and big-endian save files (meaning you can use save files from both sm64-port and most emulators), as well as an optional text-based save format.
 
-Recent changes in Nightly have moved the save and configuration file path to `%HOMEPATH%\AppData\Roaming\sm64ex` on Windows and `$HOME/.local/share/sm64ex` on Linux. This behaviour can be changed with the `--savepath` CLI option.
+Recent changes in Nightly have moved the save and configuration file path to `%HOMEPATH%\AppData\Roaming\sm64pc` on Windows and `$HOME/.local/share/sm64pc` on Linux. This behaviour can be changed with the `--savepath` CLI option.
 For example `--savepath .` will read saves from the current directory (which not always matches the exe directory, but most of the time it does);
    `--savepath '!'` will read saves from the executable directory.
 

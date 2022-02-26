@@ -1,7 +1,5 @@
-#ifndef SAVE_FILE_H
-#define SAVE_FILE_H
-
-#include <PR/ultratypes.h>
+#ifndef _SAVE_FILE_H_
+#define _SAVE_FILE_H_
 
 #include "types.h"
 #include "area.h"
@@ -74,6 +72,8 @@ struct SaveBuffer
     struct MainMenuSaveData menuData[2];
 };
 
+struct WarpNode;
+
 extern u8 gLastCompletedCourseNum;
 extern u8 gLastCompletedStarNum;
 extern s8 sUnusedGotGlobalCoinHiScore;
@@ -135,7 +135,6 @@ void save_file_set_flags(u32 flags);
 void save_file_clear_flags(u32 flags);
 u32 save_file_get_flags(void);
 u32 save_file_get_star_flags(s32 fileIndex, s32 courseIndex);
-u32 save_file_get_cannon_flags(s32 fileIndex, s32 courseIndex);
 void save_file_set_star_flags(s32 fileIndex, s32 courseIndex, u32 starFlags);
 s32 save_file_get_course_coin_score(s32 fileIndex, s32 courseIndex);
 s32 save_file_is_cannon_unlocked(void);
@@ -147,19 +146,18 @@ u16 save_file_get_sound_mode(void);
 void save_file_move_cap_to_default_location(void);
 
 void disable_warp_checkpoint(void);
-void check_if_should_set_warp_checkpoint(struct WarpNode *warpNode);
-s32 check_warp_checkpoint(struct WarpNode *warpNode);
+void check_if_should_set_warp_checkpoint(struct WarpNode *a);
+s32 check_warp_checkpoint(struct WarpNode *a);
 
 #ifdef VERSION_EU
 enum EuLanguages {
     LANGUAGE_ENGLISH,
     LANGUAGE_FRENCH,
-    LANGUAGE_GERMAN,
-    LANGUAGE_MAX
+    LANGUAGE_GERMAN
 };
 
 void eu_set_language(u16 language);
 u16 eu_get_language(void);
 #endif
 
-#endif // SAVE_FILE_H
+#endif // _SAVE_FILE_H_

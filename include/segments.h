@@ -1,5 +1,5 @@
-#ifndef SEGMENTS_H
-#define SEGMENTS_H
+#ifndef _SEGMENTS_H
+#define _SEGMENTS_H
 
 #ifdef BETTERCAMERA
 #define USE_EXT_RAM
@@ -64,4 +64,4 @@
 #define SEG_GODDARD      SEG_POOL_START + 0x113000
 #endif
 
-#endif // SEGMENTS_H
+#endif // _SEGMENTS_H

@@ -38,8 +38,6 @@
 #define SCALE_3_8(VAL_) ((VAL_) * 0x24)
 #define SCALE_8_3(VAL_) ((VAL_) / 0x24)
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
 #define HALF_SCREEN_WIDTH (SCREEN_WIDTH / 2)
 #define HALF_SCREEN_HEIGHT (SCREEN_HEIGHT / 2)
 
@@ -175,16 +173,6 @@ static size_t buf_vbo_num_tris;
 
 static struct GfxWindowManagerAPI *gfx_wapi;
 static struct GfxRenderingAPI *gfx_rapi;
-
-// 4x4 pink-black checkerboard texture to indicate missing textures
-#define MISSING_W 4
-#define MISSING_H 4
-static const uint8_t missing_texture[MISSING_W * MISSING_H * 4] = {
-    0xFF, 0x00, 0xFF, 0xFF,  0xFF, 0x00, 0xFF, 0xFF,  0x00, 0x00, 0x00, 0xFF,  0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0xFF, 0xFF,  0xFF, 0x00, 0xFF, 0xFF,  0x00, 0x00, 0x00, 0xFF,  0x00, 0x00, 0x00, 0xFF,
-    0x00, 0x00, 0x00, 0xFF,  0x00, 0x00, 0x00, 0xFF,  0xFF, 0x00, 0xFF, 0xFF,  0xFF, 0x00, 0xFF, 0xFF,
-    0x00, 0x00, 0x00, 0xFF,  0x00, 0x00, 0x00, 0xFF,  0xFF, 0x00, 0xFF, 0xFF,  0xFF, 0x00, 0xFF, 0xFF,
-};
 
 #ifdef EXTERNAL_DATA
 static inline size_t string_hash(const uint8_t *str) {
@@ -510,22 +498,22 @@ static void import_texture_ci8(int tile) {
 static inline void load_texture(const char *fullpath) {
     int w, h;
     u64 imgsize = 0;
-
     u8 *imgdata = fs_load_file(fullpath, &imgsize);
-    if (imgdata) {
-        // TODO: implement stbi_callbacks or some shit instead of loading the whole texture
-        u8 *data = stbi_load_from_memory(imgdata, imgsize, &w, &h, NULL, 4);
-        free(imgdata);
-        if (data) {
-            gfx_rapi->upload_texture(data, w, h);
-            stbi_image_free(data); // don't need this anymore
-            return;
-        }
+    if (!imgdata) {
+        fprintf(stderr, "could not open texture: `%s`\n", fullpath);
+        return;
     }
 
-    fprintf(stderr, "could not load texture: `%s`\n", fullpath);
-    // replace with missing texture
-    gfx_rapi->upload_texture(missing_texture, MISSING_W, MISSING_H);
+    // TODO: implement stbi_callbacks or some shit instead of loading the whole texture
+    u8 *data = stbi_load_from_memory(imgdata, imgsize, &w, &h, NULL, 4);
+    free(imgdata);
+    if (!data) {
+        fprintf(stderr, "could not load texture: `%s`\n", fullpath);
+        return;
+    }
+
+    gfx_rapi->upload_texture(data, w, h);
+    stbi_image_free(data); // don't need this anymore
 }
 
 
@@ -778,10 +766,16 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                 calculate_normal_dir(&lookat_y, rsp.current_lookat_coeffs[1]);
                 rsp.lights_changed = false;
             }
-            
-            int r = rsp.current_lights[rsp.current_num_lights - 1].col[0];
-            int g = rsp.current_lights[rsp.current_num_lights - 1].col[1];
-            int b = rsp.current_lights[rsp.current_num_lights - 1].col[2];
+
+            // Inspired by:
+            // https://github.com/gonetz/GLideN64/commit/c8cbafff71a81bee5112aaafe6e21d6648ff8125#diff-69d8715ec7f9fd627ec4f5516edd003dL484
+            const bool useFirstColor = (dest_index & 1) == 0;
+            const unsigned char* col = useFirstColor
+                                ? rsp.current_lights[rsp.current_num_lights - 1].col
+                                : rsp.current_lights[rsp.current_num_lights - 1].colc;
+            int r = col[0];
+            int g = col[1];
+            int b = col[2];
             
             for (int i = 0; i < rsp.current_num_lights - 1; i++) {
                 float intensity = 0;
@@ -790,9 +784,14 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                 intensity += vn->n[2] * rsp.current_lights_coeffs[i][2];
                 intensity /= 127.0f;
                 if (intensity > 0.0f) {
-                    r += intensity * rsp.current_lights[i].col[0];
-                    g += intensity * rsp.current_lights[i].col[1];
-                    b += intensity * rsp.current_lights[i].col[2];
+                    // Inspired by:
+                    // https://github.com/gonetz/GLideN64/commit/c8cbafff71a81bee5112aaafe6e21d6648ff8125#diff-69d8715ec7f9fd627ec4f5516edd003dL492
+                    col = useFirstColor
+                                ? rsp.current_lights[i].col
+                                : rsp.current_lights[i].colc;
+                    r += intensity * col[0];
+                    g += intensity * col[1];
+                    b += intensity * col[2];
                 }
             }
             
@@ -1749,10 +1748,7 @@ void gfx_init(struct GfxWindowManagerAPI *wapi, struct GfxRenderingAPI *rapi, co
         0x01141045,
         0x07a00a00,
         0x05200200,
-        0x03200200,
-        0x09200200,
-        0x0920038d,
-        0x09200045
+        0x03200200
     };
 
     for (size_t i = 0; i < sizeof(precomp_shaders) / sizeof(uint32_t); i++)
@@ -1765,10 +1761,6 @@ void gfx_precache_textures(void) {
     fs_walk(FS_TEXTUREDIR, preload_texture, NULL, true);
 }
 #endif
-
-struct GfxRenderingAPI *gfx_get_current_rendering_api(void) {
-    return gfx_rapi;
-}
 
 void gfx_start_frame(void) {
     gfx_wapi->handle_events();
@@ -1797,13 +1789,11 @@ void gfx_run(Gfx *commands) {
     gfx_flush();
     double t1 = gfx_wapi->get_time();
     //printf("Process %f %f\n", t1, t1 - t0);
-    gfx_rapi->end_frame();
     gfx_wapi->swap_buffers_begin();
 }
 
 void gfx_end_frame(void) {
     if (!dropped_frame) {
-        gfx_rapi->finish_render();
         gfx_wapi->swap_buffers_end();
     }
 }

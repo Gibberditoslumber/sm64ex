@@ -1,37 +1,35 @@
-#include <PR/ultratypes.h>
+#include <ultra64.h>
 
 #include "sm64.h"
+#include "mario.h"
 #include "area.h"
-#include "audio/data.h"
 #include "audio/external.h"
 #include "behavior_actions.h"
 #include "behavior_data.h"
 #include "camera.h"
-#include "engine/graph_node.h"
-#include "engine/math_util.h"
-#include "engine/surface_collision.h"
+#include "mario_misc.h"
 #include "game_init.h"
+#include "engine/graph_node.h"
 #include "interaction.h"
-#include "level_table.h"
 #include "level_update.h"
+#include "memory.h"
 #include "main.h"
-#include "mario.h"
-#include "mario_actions_airborne.h"
+#include "mario_actions_object.h"
 #include "mario_actions_automatic.h"
 #include "mario_actions_cutscene.h"
-#include "mario_actions_moving.h"
-#include "mario_actions_object.h"
-#include "mario_actions_stationary.h"
 #include "mario_actions_submerged.h"
-#include "mario_misc.h"
+#include "mario_actions_airborne.h"
+#include "mario_actions_moving.h"
+#include "mario_actions_stationary.h"
 #include "mario_step.h"
-#include "memory.h"
+#include "engine/math_util.h"
 #include "object_fields.h"
 #include "object_helpers.h"
-#include "object_list_processor.h"
 #include "print.h"
 #include "save_file.h"
 #include "sound_init.h"
+#include "engine/surface_collision.h"
+#include "level_table.h"
 #include "thread6.h"
 #include "pc/configfile.h"
 #include "pc/cheats.h"
@@ -352,7 +350,7 @@ void play_mario_heavy_landing_sound_once(struct MarioState *m, u32 soundBits) {
 }
 
 /**
- * Plays action and Mario sounds relevant to what was passed into the function.
+ * Plays action and mario sounds relevant to what was passed into the function.
  */
 void play_mario_sound(struct MarioState *m, s32 actionSound, s32 marioSound) {
     if (actionSound == SOUND_ACTION_TERRAIN_JUMP) {
@@ -390,7 +388,7 @@ void mario_set_forward_vel(struct MarioState *m, f32 forwardVel) {
 }
 
 /**
- * Returns the slipperiness class of Mario's floor.
+ * Returns the slipperines class of Mario's floor.
  */
 s32 mario_get_floor_class(struct MarioState *m) {
     s32 floorClass;
@@ -767,7 +765,7 @@ void set_steep_jump_action(struct MarioState *m) {
 }
 
 /**
- * Sets Mario's vertical speed from his forward speed.
+ * Set's Marios vertical speed from his forward speed.
  */
 static void set_mario_y_vel_based_on_fspeed(struct MarioState *m, f32 initialVelY, f32 multiplier) {
     // get_additive_y_vel_for_jumps is always 0 and a stubbed function.
@@ -1121,8 +1119,9 @@ s32 hurt_and_set_mario_action(struct MarioState *m, u32 action, u32 actionArg, s
 }
 
 /**
- * Checks a variety of inputs for common transitions between many different
- * actions. A common variant of the below function.
+ * Checks a variety of inputs for common transitions between
+ * many different actions. A common variant of the
+ * below function.
  */
 s32 check_common_action_exits(struct MarioState *m) {
     if (m->input & INPUT_A_PRESSED) {
@@ -1142,8 +1141,9 @@ s32 check_common_action_exits(struct MarioState *m) {
 }
 
 /**
- * Checks a variety of inputs for common transitions between many different
- * object holding actions. A holding variant of the above function.
+ * Checks a variety of inputs for common transitions between
+ * many different object holding actions. A holding variant of the
+ * above function.
  */
 s32 check_common_hold_action_exits(struct MarioState *m) {
     if (m->input & INPUT_A_PRESSED) {
@@ -1582,7 +1582,8 @@ void sink_mario_in_quicksand(struct MarioState *m) {
     struct Object *o = m->marioObj;
 
     if (o->header.gfx.throwMatrix) {
-        (*o->header.gfx.throwMatrix)[3][1] -= m->quicksandDepth;
+        // TODO: throwMatrix should probably be an actual matrix pointer
+        *(f32 *) ((u8 *) o->header.gfx.throwMatrix + 0x34) -= m->quicksandDepth;
     }
 
     o->header.gfx.pos[1] -= m->quicksandDepth;
@@ -1939,7 +1940,7 @@ void init_mario_from_save_file(void) {
     gMarioState->numLives = 4;
     gMarioState->health = 0x880;
 
-    gMarioState->prevNumStarsForDialog = gMarioState->numStars;
+    gMarioState->unkB8 = gMarioState->numStars;
     gMarioState->unkB0 = 0xBD;
 
     gHudDisplay.coins = 0;
