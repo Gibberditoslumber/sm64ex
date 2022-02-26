@@ -1,8 +1,7 @@
-#ifndef SEGMENT7_H
-#define SEGMENT7_H
+#ifndef SEGMENT_7_H
+#define SEGMENT_7_H
 
-#include <PR/ultratypes.h>
-#include <PR/gbi.h>
+#include "types.h"
 
 // from main menu segment 7
 extern u8 dl_menu_idle_hand[];
@@ -29,4 +28,4 @@ extern Gfx *intro_seg7_dl_0700C6A0;
 extern f32 intro_seg7_table_0700C790[];
 extern f32 intro_seg7_table_0700C880[];
 
-#endif // SEGMENT7_H
+#endif /* SEGMENT_7_H */

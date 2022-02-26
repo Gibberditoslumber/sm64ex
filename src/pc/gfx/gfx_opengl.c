@@ -19,20 +19,13 @@
 # include <GL/glew.h>
 #endif
 
-#define GL_GLEXT_PROTOTYPES 1
+#include <SDL2/SDL.h>
 
-#ifdef WAPI_SDL2
-# include <SDL2/SDL.h>
-# ifdef USE_GLES
-#  include <SDL2/SDL_opengles2.h>
-# else
-#  include <SDL2/SDL_opengl.h>
-# endif
-#elif defined(WAPI_SDL1)
-# include <SDL/SDL.h>
-# ifndef GLEW_STATIC
-#  include <SDL/SDL_opengl.h>
-# endif
+#define GL_GLEXT_PROTOTYPES 1
+#ifdef USE_GLES
+# include <SDL2/SDL_opengles2.h>
+#else
+# include <SDL2/SDL_opengl.h>
 #endif
 
 #include "../platform.h"
@@ -641,9 +634,6 @@ static void gfx_opengl_init(void) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-static void gfx_opengl_on_resize(void) {
-}
-
 static void gfx_opengl_start_frame(void) {
     frame_count++;
 
@@ -652,12 +642,6 @@ static void gfx_opengl_start_frame(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_SCISSOR_TEST);
-}
-
-static void gfx_opengl_end_frame(void) {
-}
-
-static void gfx_opengl_finish_render(void) {
 }
 
 static void gfx_opengl_shutdown(void) {
@@ -682,10 +666,7 @@ struct GfxRenderingAPI gfx_opengl_api = {
     gfx_opengl_set_use_alpha,
     gfx_opengl_draw_triangles,
     gfx_opengl_init,
-    gfx_opengl_on_resize,
     gfx_opengl_start_frame,
-    gfx_opengl_end_frame,
-    gfx_opengl_finish_render,
     gfx_opengl_shutdown
 };
 

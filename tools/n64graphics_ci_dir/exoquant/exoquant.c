@@ -24,9 +24,7 @@ SOFTWARE.
 
 #include "exoquant.h"
 
-#ifdef __APPLE__
-// No malloc on mac
-#else
+#ifndef OSX_BUILD // OSX build cannot have malloc defined
 #include <malloc.h>
 #endif
 

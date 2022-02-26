@@ -1,18 +1,17 @@
-#include <PR/ultratypes.h>
+#include <ultra64.h>
 
 #include "sm64.h"
 #include "area.h"
-#include "audio/data.h"
-#include "audio/external.h"
-#include "camera.h"
-#include "engine/graph_node.h"
-#include "engine/math_util.h"
-#include "game_init.h"
-#include "interaction.h"
 #include "level_update.h"
+#include "engine/math_util.h"
+#include "interaction.h"
 #include "mario.h"
 #include "mario_step.h"
+#include "game_init.h"
+#include "camera.h"
 #include "save_file.h"
+#include "audio/external.h"
+#include "engine/graph_node.h"
 #include "thread6.h"
 #ifdef BETTERCAMERA
 #include "bettercamera.h"
@@ -1754,7 +1753,7 @@ s32 act_flying(struct MarioState *m) {
         set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
 #else
         if (newcam_active == 0)
-           set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
         else
         {
             m->area->camera->mode = CAMERA_MODE_NEWCAM;

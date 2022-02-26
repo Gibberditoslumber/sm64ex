@@ -1,7 +1,5 @@
-#ifndef SURFACE_LOAD_H
-#define SURFACE_LOAD_H
-
-#include <PR/ultratypes.h>
+#ifndef _SURFACE_LOAD_H
+#define _SURFACE_LOAD_H
 
 #include "types.h"
 
@@ -37,4 +35,4 @@ void load_area_terrain(s16 index, s16 *data, s8 *surfaceRooms, s16 *macroObjects
 void clear_dynamic_surfaces(void);
 void load_object_collision_model(void);
 
-#endif // SURFACE_LOAD_H
+#endif

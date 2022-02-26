@@ -1,7 +1,6 @@
 #!/bin/bash
 # Super Mario 64 PC on Raspberry Pi
-# Find latest updates and code on https://www.github.com/sm64pc/sm64ex
-# NOTE: If you clone the repo, source must be copied in ~/src/sm64pc/sm64ex/
+# Find latest updates and code on https://www.github.com/sm64pc/sm64pc 
 # ToDo: Test on more Pi models with fresh Raspbian and allow existing src folders to be updated.
 #
 clear
@@ -12,11 +11,11 @@ lowmem=0
 pi=0
 pimodel=$(uname -m 2>/dev/null || echo unknown)
 pitype=$(tr -d '\0' < /sys/firmware/devicetree/base/model)
-repo_url="https://github.com/sm64pc/sm64ex"
 
 if [[ $pimodel =~ "armv6" ]]
 then
-   echo -e "\nRaspberry Pi Model 1/0(W) detected (LOWMEM)"
+   echo ""
+   echo "Raspberry Pi Model 1/0(W) detected (LOWMEM)"
    echo "Warning: Additional steps may be required to safely compile and maximize performance"
    pi=1;
    lowmem=1;
@@ -25,14 +24,16 @@ fi
 
 if [[ $pimodel =~ "armv7" ]]
 then
-   echo -e "\nRaspberry Pi Model 2/3/4 detected (32bit)"
+   echo
+   echo "Raspberry Pi Model 2/3 detected (32bit)"
    pi=2;
    lowmem=0;
 fi
 
 if [[ $pimodel =~ "aarch64" && $pitype =~ "4" ]]
 then
-   echo -e "\nRaspberry Pi Model 4 (64 bits) detected"
+   echo
+   echo "Raspberry Pi Model 4 detected"
    echo "Audio errors reported"
    echo "Fixing audio config, reboot after compilation completes to activate"
    sudo sed -i 's/load-module module-udev-detect/load-module module-udev-detect tsched=0/' /etc/pulse/default.pa
@@ -50,14 +51,14 @@ then
    echo "Further steps may be required and software / driver compatibility is not guaranteed."
    read -p "Continue setup & compilation (Y/N): " exp
 
-	if [[ $exp =~ [Yy] ]]
+	if [[ $exp =~ "Y" ]]
 	then
         echo ""
         else
  	exit
 	fi
 
-   echo "Please report any problems encountered to ${repo_url} issue tracker."
+   echo "Please report any problems encountered to https://github.com/sm64pc/sm64pc issue tracker."
    echo ""
    sleep 7
 fi
@@ -78,7 +79,7 @@ if [[ $inxinf =~ "not found" ]]
 then
 echo "Error: inxi not installed. Installing..."
 sudo apt-get update
-sudo apt-get install -y inxi
+sudo apt-get install inxi
 inxi=$(inxi -Gx)
 
 	if [[ $inxinf =~ "not found" ]]
@@ -129,7 +130,7 @@ fixmem=$(cat /boot/cmdline.txt | grep cma=128M)
 		echo ""
 		read -p "Fix mem? (Y/N): " fixmem
 
-			if [[ $fixmem =~ [Yy] ]]
+			if [[ $fixmem =~ "Y" ]]
 			then
 			sudo sh -c "echo 'gpu_mem=48' >> /boot/config.txt"
 			sudo sh -c "echo 'cma=128M' >> /boot/cmdline.txt"
@@ -145,12 +146,12 @@ fixmem=$(cat /boot/cmdline.txt | grep cma=128M)
 	fi
 fi
 
-if [[ $fixmem =~ [Yy] || $vc4add =~ "vc4" ]]
+if [[ $fixmem =~ "Y" || $vc4add =~ "vc4" ]]
 then
 clear
 echo "System configuration has changed!"
 read -p "Reboot to enable changes? (Y/N): " fixstart
-	if [[ $fixstart =~ [Yy] ]]
+	if [[ $fixstart =~ "Y" ]]
 	then
 	echo ""
 	echo "Rebooting RasPi in 4 seconds! Press Control-C to cancel."
@@ -169,11 +170,11 @@ echo "Step 1. Installing latest dependencies"
 echo "Allow installation & checking of Super Mario 64 compile dependencies?"
 read -p "Install? (Y/N): " instdep
 
-if [[ $instdep =~ [Yy] ]]
+if [[ $instdep =~ "Y" ]]
 then
 echo ""
 sudo apt-get update
-sudo apt install -y build-essential git python3 libaudiofile-dev libglew-dev libsdl2-dev
+sudo apt install build-essential git python3 libaudiofile-dev libglew-dev libsdl2-dev
 sync
 else
 echo ""
@@ -192,14 +193,14 @@ echo ""
 echo "Warning: Compile could take up to an hour on older Raspberry Pi models"
 read -p "Proceed? (Y/N): " sdlcomp
 
-if [[ $sdlcomp =~ [Yy] ]]
+if [[ $sdlcomp =~ "Y" ]]
 then
 echo ""
 echo "Installing dependencies for SDL2 compilation"
 
 sudo sed -i '/^#\sdeb-src /s/^#//' "/etc/apt/sources.list"
 sudo apt build-dep libsdl2
-sudo apt install -y libdrm-dev libgbm-dev
+sudo apt install libdrm-dev libgbm-dev
 sync
 
 echo ""
@@ -233,10 +234,10 @@ clear
 echo "Super Mario 64 RPi preparation & downloader"
 echo ""
 echo "Checking in current directory and"
-echo "checking in "$HOME"/src/sm64pc/sm64ex/ for existing Super Mario 64 PC files"
+echo "checking in "$HOME"/src/sm64pi/sm64pc/ for existing Super Mario 64 PC files"
 echo ""
 sm64dircur=$(ls ./Makefile)
-sm64dir=$(ls $HOME/src/sm64pc/sm64ex/Makefile)
+sm64dir=$(ls $HOME/src/sm64pi/sm64pc/Makefile)
 
 if [[ $sm64dircur =~ "Makefile" ]] #If current directory has a makefile
 then
@@ -256,7 +257,7 @@ then
     curdir=1 
     fi
 
-else #Do a fresh compile in HOME/src/sm64pc/sm64ex/
+else #Do a fresh compile in HOME/src/sm64pi/sm64pc/
     sm64dir=0;
     curdir=0;
 fi
@@ -264,25 +265,25 @@ fi
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-if [[ $sm64git =~ [Yy] || $sm64dir == 0 || $curdir == 0 ]]  #If user wants to redownload or NOT git-zip execution
+if [[ $sm64git =~ "Y" || $sm64dir == 0 || $curdir == 0 ]]  #If user wants to redownload or NOT git-zip execution
 then
 echo "Step 2. Super Mario 64 PC-Port will now be downloaded from github"
 echo "Current folder will NOT be compiled."
 read -p "Proceed? (Y/N): " gitins
 
-if [[ $gitins =~ [Yy] ]]
+if [[ $gitins =~ "Y" ]]
 then
 echo ""
-echo "Creating directory "$HOME"/src/sm64pc"
+echo "Creating directory "$HOME"/src/sm64pi"
 mkdir $HOME/src/
 cd $HOME/src/
-mkdir $HOME/src/sm64pc
-cd $HOME/src/sm64pc
+mkdir $HOME/src/sm64pi
+cd $HOME/src/sm64pi
 
 echo ""
 echo "Downloading latest Super Mario 64 PC-port code"
-git clone ${repo_url}
-cd $HOME/src/sm64pc/sm64ex/
+git clone https://github.com/sm64pc/sm64pc
+cd $HOME/src/sm64pi/sm64pc/
 echo "Download complete"
 echo ""
 sleep 2
@@ -298,18 +299,18 @@ echo ""
 echo "Step 3. Compiling Super Mario 64 for the Raspberry Pi"
 echo ""
 echo "Warning: Super Mario 64 assets are required in order to compile"
-if [[ $curdir == 1 ]]
+if [[ $curdir ==1 ]]
 then
 echo "Assets will be extracted from "$PWD" "
 else
-echo "Assets will be extracted from $HOME/src/sm64pc/sm64ex/baserom.(us/eu/jp).z64 "
+echo "Assets will be extracted from $HOME/src/sm64pi/sm64pc/baserom.(us/eu/jp).z64 "
 fi
 
 if [[ $curdir == 1 ]]
 then
 sm64z64=$(find ./* | grep baserom) #See if current directory is prepped
 else
-sm64z64=$(find $HOME/src/sm64pc/sm64ex/* | grep baserom) #see if fresh compile directory is prepped
+sm64z64=$(find $HOME/src/sm64pi/sm64pc/* | grep baserom) #see if fresh compile directory is prepped
 fi
 
 if [[ $sm64z64 =~ "baserom" ]]
@@ -331,7 +332,7 @@ echo $PWD
 echo ""
 else
 echo ""
-echo $HOME/src/sm64pc/sm64ex/
+echo $HOME/src/sm64pi/sm64pc/
 fi
 
 sleep 5
@@ -347,7 +348,7 @@ echo ""
 
 if [[ $curdir != 1 ]] # If we're not compiling from a git zip / random directory
 then
-cd $HOME/src/sm64pc/sm64ex/
+cd $HOME/src/sm64pi/sm64pc/
 fi
 
 echo "Beginning Super Mario 64 RasPi compilation!"
@@ -357,12 +358,7 @@ echo "At least 300MB of free storage AND RAM is recommended"
 echo ""
 make clean
 sync
-if [[ $pimodel =~ "armv6" ]]
-then
 make TARGET_RPI=1
-else
-make TARGET_RPI=1 -j4
-fi
 sync
 
 
@@ -373,7 +369,7 @@ if [[ $curdir == 1 ]]
 then
 sm64done=$(find ./build/*/* | grep .arm)
 else
-sm64done=$(find $HOME/src/sm64pc/sm64ex/build/*/* | grep .arm)
+sm64done=$(find $HOME/src/sm64pi/sm64pc/build/*/* | grep .arm)
 fi
 
 echo ""
@@ -386,7 +382,7 @@ if [[ $curdir == 1 ]]
 then
 $sm64loc=$(ls ./build/*pc/*.arm)
 else
-$sm64loc=$(ls $HOME/src/sm64pc/sm64ex/build/*pc/*.arm)
+$sm64loc=$(ls $HOME/src/sm64pi/sm64pc/build/*pc/*.arm)
 fi
 
 echo $sm64loc
@@ -395,7 +391,7 @@ echo ""
 echo "Execute compiled Super Mario 64 RasPi?"
 read -p "Run game (Y/N): " sm64run
 
-if [[ $sm64run =~ [Yy] ]]
+if [[ $sm64run =~ "Y" ]]
 then
 cd
 chmod +x $sm64loc
@@ -406,7 +402,7 @@ fi
 else
 echo "Cannot find compiled sm64*.arm binary..."
 echo "Please note of any errors during compilation process and report them to"
-echo "${repo_url}"
+echo "https://github.com/sm64pc/sm64pc"
 sleep 5
 fi
 
