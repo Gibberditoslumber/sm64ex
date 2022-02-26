@@ -10,7 +10,7 @@
 
 typedef struct {
     unsigned int x, y, w, h;
-    unsigned int vsync;
+    bool vsync;
     bool reset;
     bool fullscreen;
     bool exiting_fullscreen;
@@ -52,8 +52,10 @@ extern bool         configCameraInvertX;
 extern bool         configCameraInvertY;
 extern bool         configEnableCamera;
 extern bool         configCameraMouse;
+extern bool         configCameraAnalog;
 #endif
 extern bool         configHUD;
+extern bool         configSkipIntro;
 #ifdef DISCORDRPC
 extern bool         configDiscordRPC;
 #endif

@@ -24,7 +24,9 @@
 
 #endif // End of OS-Specific GL defines
 
+#include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "gfx_window_manager_api.h"
 #include "gfx_screen_config.h"
@@ -41,8 +43,6 @@
 # define FRAMERATE 30
 #endif
 
-static const Uint32 FRAME_TIME = 1000 / FRAMERATE;
-
 static SDL_Window *wnd;
 static SDL_GLContext ctx = NULL;
 static int inverted_scancode_table[512];
@@ -50,6 +50,15 @@ static int inverted_scancode_table[512];
 static kb_callback_t kb_key_down = NULL;
 static kb_callback_t kb_key_up = NULL;
 static void (*kb_all_keys_up)(void) = NULL;
+
+// whether to use timer for frame control
+static bool use_timer = true;
+// time between consequtive game frames, in perf counter ticks
+static double frame_rate = 0.0; // set in init()
+// time in which a frame began, in perf counter ticks
+static double frame_time = 0.0; // updated in start_frame()
+// GetPerformanceFrequency
+static double perf_freq = 0.0;
 
 const SDL_Scancode windows_scancode_table[] = {
   /*  0                        1                            2                         3                            4                     5                            6                            7  */
@@ -103,7 +112,7 @@ const SDL_Scancode scancode_rmapping_nonextended[][2] = {
 
 #define IS_FULLSCREEN() ((SDL_GetWindowFlags(wnd) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
 
-static void gfx_sdl_set_fullscreen() {
+static void gfx_sdl_set_fullscreen(void) {
     if (configWindow.reset)
         configWindow.fullscreen = false;
     if (configWindow.fullscreen == IS_FULLSCREEN())
@@ -137,7 +146,8 @@ static void gfx_sdl_reset_dimension_and_pos(void) {
 
     SDL_SetWindowSize(wnd, configWindow.w, configWindow.h);
     SDL_SetWindowPosition(wnd, xpos, ypos);
-    SDL_GL_SetSwapInterval(configWindow.vsync); // in case vsync changed
+    // in case vsync changed
+    SDL_GL_SetSwapInterval(configWindow.vsync);
 }
 
 static void gfx_sdl_init(const char *window_title) {
@@ -169,6 +179,11 @@ static void gfx_sdl_init(const char *window_title) {
 
     gfx_sdl_set_fullscreen();
 
+    perf_freq = SDL_GetPerformanceFrequency();
+
+    frame_rate = perf_freq / FRAMERATE;
+    frame_time = SDL_GetPerformanceCounter();
+
     for (size_t i = 0; i < sizeof(windows_scancode_table) / sizeof(SDL_Scancode); i++) {
         inverted_scancode_table[windows_scancode_table[i]] = i;
     }
@@ -184,15 +199,14 @@ static void gfx_sdl_init(const char *window_title) {
 }
 
 static void gfx_sdl_main_loop(void (*run_one_game_iter)(void)) {
-    Uint32 t = SDL_GetTicks();
     run_one_game_iter();
-    t = SDL_GetTicks() - t;
-    if (t < FRAME_TIME && configWindow.vsync <= 1)
-        SDL_Delay(FRAME_TIME - t);
 }
 
 static void gfx_sdl_get_dimensions(uint32_t *width, uint32_t *height) {
-    SDL_GetWindowSize(wnd, width, height);
+    int w, h;
+    SDL_GetWindowSize(wnd, &w, &h);
+    if (width) *width = w;
+    if (height) *height = h;
 }
 
 static int translate_scancode(int scancode) {
@@ -272,11 +286,35 @@ static bool gfx_sdl_start_frame(void) {
     return true;
 }
 
+static inline void sync_framerate_with_timer(void) {
+    // calculate how long it took for the frame to render
+    const double now = SDL_GetPerformanceCounter();
+    const double frame_length = now - frame_time;
+
+    if (frame_length < frame_rate) {
+        // Only sleep if we have time to spare
+        const double remain = frame_rate - frame_length;
+        // Sleep remaining time away
+        sys_sleep(remain / perf_freq * 1000000.0);
+        // Assume we slept the required amount of time to keep the timer stable
+        frame_time = now + remain;
+    } else {
+        frame_time = now;
+    }
+}
+
 static void gfx_sdl_swap_buffers_begin(void) {
+    // Swap after we finished rendering, only if this frame wasn't dropped.
+    // This will wait for vblank if vsync is enabled and then update our window with our render.
     SDL_GL_SwapWindow(wnd);
 }
 
 static void gfx_sdl_swap_buffers_end(void) {
+    // The game isn't always going to run at a consistent rate,
+    // with frame pacing going up and down depending on hardware performance.
+    // Sleep off any remaining time to make the main loop iteration be called at a consistent frane rate.
+    // We do this after our swap, because it actually will take the time to swap into account.
+    sync_framerate_with_timer();
 }
 
 static double gfx_sdl_get_time(void) {
