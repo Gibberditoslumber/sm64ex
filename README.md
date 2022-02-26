@@ -31,5 +31,5 @@ For building instructions, please refer to the [wiki](https://github.com/sm64pc/
 # BUILD FOR LINUX64/32
 #64bit sudo apt install build-essential git python3 libglew-dev libsdl2-dev ; git clone https://github.com/sm64pc/sm64ex ; cd sm64ex ; wget https://sites.google.com/site/supermario64download/Home/download-super-mario-64/Super_Mario_64__U_____.z64 ; mv Super_Mario_64__U_____.z64 baserom.us.z64 ; make
 
-#TAREGET 32BIT
+#TAREGET32BIT
 sudo apt install build-essential git python3 libglew-dev:i386 libsdl2-dev:i386 ; git clone https://github.com/sm64pc/sm64ex ; cd sm64ex ; wget https://sites.google.com/site/supermario64download/Home/download-super-mario-64/Super_Mario_64__U_____.z64 ; mv Super_Mario_64__U_____.z64 baserom.us.z64 ; make
